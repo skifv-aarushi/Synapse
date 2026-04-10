@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import TaskList from '../components/TaskList';
 import NoteList from '../components/NoteList';
 
-const API_BASE = 'http://localhost:5000';
+const TASKS_STORAGE_KEY = 'synapseTasks';
+const NOTES_STORAGE_KEY = 'synapseNotes';
 
 function Home() {
   const [tasks, setTasks] = useState([]);
@@ -13,77 +14,93 @@ function Home() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetchTasks();
-    fetchNotes();
+    const savedTasks = sessionStorage.getItem(TASKS_STORAGE_KEY);
+    const savedNotes = sessionStorage.getItem(NOTES_STORAGE_KEY);
+
+    setTasks(savedTasks ? JSON.parse(savedTasks) : []);
+    setNotes(savedNotes ? JSON.parse(savedNotes) : []);
   }, []);
 
-  const fetchTasks = async () => {
-    const response = await fetch(`${API_BASE}/tasks`);
-    const data = await response.json();
-    setTasks(data);
+  const saveState = (updatedTasks, updatedNotes) => {
+    sessionStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
+    sessionStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(updatedNotes));
   };
 
-  const fetchNotes = async () => {
-    const response = await fetch(`${API_BASE}/notes`);
-    const data = await response.json();
-    setNotes(data);
-  };
-
-  const handleAddTask = async (event) => {
+  const handleAddTask = (event) => {
     event.preventDefault();
     if (!taskTitle.trim()) return;
-    const response = await fetch(`${API_BASE}/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: taskTitle.trim() })
+
+    const newTask = {
+      id: Date.now(),
+      title: taskTitle.trim(),
+      completed: false,
+      created_at: new Date().toISOString()
+    };
+
+    setTasks((current) => {
+      const updatedTasks = [newTask, ...current];
+      saveState(updatedTasks, notes);
+      return updatedTasks;
     });
-    const newTask = await response.json();
-    setTasks((current) => [newTask, ...current]);
+
     setTaskTitle('');
   };
 
-  const handleAddNote = async (event) => {
+  const handleAddNote = (event) => {
     event.preventDefault();
     if (!noteTitle.trim() && !noteContent.trim()) return;
-    const response = await fetch(`${API_BASE}/notes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: noteTitle.trim(), content: noteContent.trim() })
+
+    const newNote = {
+      id: Date.now(),
+      title: noteTitle.trim(),
+      content: noteContent.trim(),
+      created_at: new Date().toISOString()
+    };
+
+    setNotes((current) => {
+      const updatedNotes = [newNote, ...current];
+      saveState(tasks, updatedNotes);
+      return updatedNotes;
     });
-    const newNote = await response.json();
-    setNotes((current) => [newNote, ...current]);
+
     setNoteTitle('');
     setNoteContent('');
   };
 
-  const handleToggleComplete = async (id, completed) => {
-    const response = await fetch(`${API_BASE}/tasks/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completed: !completed })
+  const handleToggleComplete = (id) => {
+    setTasks((current) => {
+      const updatedTasks = current.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      );
+      saveState(updatedTasks, notes);
+      return updatedTasks;
     });
-    const updatedTask = await response.json();
-    setTasks((current) => current.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
   };
 
-  const handleDeleteTask = async (id) => {
-    await fetch(`${API_BASE}/tasks/${id}`, { method: 'DELETE' });
-    setTasks((current) => current.filter((task) => task.id !== id));
-  };
-
-  const handleDeleteNote = async (id) => {
-    await fetch(`${API_BASE}/notes/${id}`, { method: 'DELETE' });
-    setNotes((current) => current.filter((note) => note.id !== id));
-  };
-
-  const handleUpdateNote = async (id, title, content) => {
-    const response = await fetch(`${API_BASE}/notes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content })
+  const handleDeleteTask = (id) => {
+    setTasks((current) => {
+      const updatedTasks = current.filter((task) => task.id !== id);
+      saveState(updatedTasks, notes);
+      return updatedTasks;
     });
-    const updatedNote = await response.json();
-    setNotes((current) => current.map((note) => (note.id === updatedNote.id ? updatedNote : note)));
+  };
+
+  const handleDeleteNote = (id) => {
+    setNotes((current) => {
+      const updatedNotes = current.filter((note) => note.id !== id);
+      saveState(tasks, updatedNotes);
+      return updatedNotes;
+    });
+  };
+
+  const handleUpdateNote = (id, title, content) => {
+    setNotes((current) => {
+      const updatedNotes = current.map((note) =>
+        note.id === id ? { ...note, title, content } : note
+      );
+      saveState(tasks, updatedNotes);
+      return updatedNotes;
+    });
   };
 
   const filteredNotes = notes.filter((note) => {
@@ -103,7 +120,7 @@ function Home() {
         <section className="panel-row">
           <article className="panel soft-card">
             <div className="panel-header">
-              <h2>Task Garden</h2>
+              <h2>To-Do List</h2>
               <span>📝</span>
             </div>
             <form className="input-row" onSubmit={handleAddTask}>
@@ -119,7 +136,7 @@ function Home() {
 
           <article className="panel soft-card">
             <div className="panel-header">
-              <h2>Notes Blossom</h2>
+              <h2>Notes</h2>
               <span>✨</span>
             </div>
             <form className="input-column" onSubmit={handleAddNote}>

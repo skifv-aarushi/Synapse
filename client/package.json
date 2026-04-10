@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "homepage": "https://skifv-aarushi.github.io/synapse",
+  "homepage": "https://skifv-aarushi.github.io/Synapse",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
