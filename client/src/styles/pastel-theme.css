@@ -1,0 +1,21 @@
+.pastel-bg {
+  background: linear-gradient(180deg, #fff6ff 0%, #f3f9ff 100%);
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a88ebf;
+}
+
+button:focus,
+input:focus,
+textarea:focus {
+  outline: none;
+}
