@@ -33,6 +33,12 @@ Open the URL shown in the terminal (usually `http://localhost:3000`).
 - Everything is cleared when the browser tab or window is closed
 - No backend or SQL database is required for this static deployment
 
+## Website structure
+
+- Smooth navigation with a dropdown menu
+- Three main sections: Welcome, Tasks, Notes
+- Bootstrap styling for a polished static site experience
+
 ## Deployment
 
 This app is configured for GitHub Pages using the `gh-pages` package.
