@@ -1,0 +1,11 @@
+{
+  "name": "synapse",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview",
+    "deploy": "cd client && npm run deploy"
+  }
+}
